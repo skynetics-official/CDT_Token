@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>CDT Trade Token Calculator</title>
+  <meta name="description" content="Калькулятор Trade Tokens для Car Dealership Tycoon: баланс, комиссия и TAX COVERED / NOT COVERED." />
+  <style>
+    :root{
+      --bg:#070b16;
+      --panel:rgba(18,24,44,.78);
+      --panel-2:rgba(25,34,61,.72);
+      --line:rgba(255,255,255,.10);
+      --text:#f5f7ff;
+      --muted:#9aa6c7;
+      --accent:#7c5cff;
+      --accent2:#2fd8ff;
+      --good:#34d399;
+      --bad:#fb7185;
+      --warn:#fbbf24;
+      --shadow:0 24px 70px rgba(0,0,0,.35);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 12% 12%, rgba(124,92,255,.25), transparent 28rem),
+        radial-gradient(circle at 88% 18%, rgba(47,216,255,.16), transparent 24rem),
+        linear-gradient(180deg,#080c17 0%,#090d18 50%,#060912 100%);
+      overflow-x:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.18;
+      background-image:
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size:32px 32px;
+      mask-image:linear-gradient(to bottom,black,transparent 85%);
+    }
+
+    .wrap{
+      width:min(1080px,calc(100% - 28px));
+      margin:0 auto;
+      padding:42px 0 56px;
+      position:relative;
+      z-index:1;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:28px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+
+    .logo{
+      width:44px;
+      height:44px;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      box-shadow:0 10px 30px rgba(92,110,255,.35);
+      font-size:22px;
+    }
+
+    .badge{
+      padding:7px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      color:var(--muted);
+      background:rgba(255,255,255,.045);
+      font-size:13px;
+      white-space:nowrap;
+    }
+
+    .hero{
+      margin-bottom:22px;
+    }
+
+    h1{
+      margin:0;
+      font-size:clamp(34px,6vw,62px);
+      line-height:.98;
+      letter-spacing:-2.2px;
+      max-width:820px;
+    }
+
+    .gradient{
+      background:linear-gradient(90deg,#fff 0%,#b9c6ff 35%,#68e3ff 100%);
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+
+    .hero p{
+      margin:16px 0 0;
+      color:var(--muted);
+      font-size:clamp(15px,2.2vw,18px);
+      max-width:760px;
+      line-height:1.6;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(330px,.9fr);
+      gap:20px;
+      align-items:start;
+    }
+
+    .card{
+      background:linear-gradient(180deg,rgba(23,30,53,.86),rgba(13,18,34,.86));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+    }
+
+    .pad{padding:22px}
+
+    .section-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:18px;
+    }
+
+    .section-title h2{
+      margin:0;
+      font-size:18px;
+      letter-spacing:-.3px;
+    }
+
+    .section-title small{
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .field{
+      margin-bottom:15px;
+    }
+
+    label{
+      display:block;
+      margin-bottom:8px;
+      color:#dce3ff;
+      font-weight:650;
+      font-size:14px;
+    }
+
+    .input-wrap{
+      position:relative;
+    }
+
+    input{
+      width:100%;
+      border:1px solid rgba(255,255,255,.12);
+      outline:none;
+      border-radius:15px;
+      background:rgba(255,255,255,.05);
+      color:var(--text);
+      padding:14px 48px 14px 14px;
+      font-size:18px;
+      font-weight:700;
+      transition:.18s ease;
+    }
+
+    input:focus{
+      border-color:rgba(124,92,255,.75);
+      box-shadow:0 0 0 4px rgba(124,92,255,.13);
+      background:rgba(255,255,255,.07);
+    }
+
+    .suffix{
+      position:absolute;
+      right:14px;
+      top:50%;
+      transform:translateY(-50%);
+      color:var(--muted);
+      font-size:13px;
+      pointer-events:none;
+    }
+
+    .mode-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:4px;
+    }
+
+    .mode{
+      position:relative;
+    }
+
+    .mode input{
+      position:absolute;
+      opacity:0;
+      pointer-events:none;
+    }
+
+    .mode label{
+      height:100%;
+      margin:0;
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.035);
+      border-radius:16px;
+      padding:14px;
+      transition:.18s ease;
+    }
+
+    .mode label:hover{
+      border-color:rgba(255,255,255,.20);
+      transform:translateY(-1px);
+    }
+
+    .mode input:checked + label{
+      border-color:rgba(124,92,255,.72);
+      background:linear-gradient(180deg,rgba(124,92,255,.17),rgba(124,92,255,.08));
+      box-shadow:inset 0 0 0 1px rgba(124,92,255,.16);
+    }
+
+    .mode strong{
+      display:block;
+      margin-bottom:5px;
+      color:#fff;
+      font-size:14px;
+    }
+
+    .mode span{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+
+    .hint{
+      margin-top:12px;
+      padding:12px 13px;
+      border-radius:14px;
+      border:1px solid rgba(47,216,255,.15);
+      background:rgba(47,216,255,.055);
+      color:#b8c7e8;
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      margin-top:17px;
+    }
+
+    button{
+      border:0;
+      cursor:pointer;
+      border-radius:14px;
+      padding:13px 16px;
+      font-size:14px;
+      font-weight:800;
+      transition:.18s ease;
+    }
+
+    button:active{transform:translateY(1px)}
+
+    .primary{
+      flex:1;
+      color:#fff;
+      background:linear-gradient(135deg,var(--accent),#5a8cff);
+      box-shadow:0 12px 28px rgba(90,110,255,.28);
+    }
+
+    .secondary{
+      color:#e8edff;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.10);
+    }
+
+    .results{
+      display:grid;
+      gap:12px;
+    }
+
+    .result-main{
+      padding:20px;
+      border-radius:18px;
+      border:1px solid rgba(124,92,255,.24);
+      background:
+        radial-gradient(circle at 100% 0, rgba(47,216,255,.15), transparent 15rem),
+        linear-gradient(135deg,rgba(124,92,255,.15),rgba(255,255,255,.035));
+    }
+
+    .result-main .eyebrow{
+      color:#a9b7da;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:1.2px;
+      font-weight:800;
+    }
+
+    .result-main .big{
+      margin-top:6px;
+      font-size:clamp(36px,6vw,54px);
+      line-height:1;
+      font-weight:900;
+      letter-spacing:-2px;
+    }
+
+    .result-main .sub{
+      margin-top:8px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .stat{
+      min-height:94px;
+      padding:14px;
+      border-radius:16px;
+      background:rgba(255,255,255,.045);
+      border:1px solid rgba(255,255,255,.075);
+    }
+
+    .stat span{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:7px;
+    }
+
+    .stat strong{
+      display:block;
+      font-size:20px;
+      letter-spacing:-.4px;
+      word-break:break-word;
+    }
+
+    .good{color:var(--good)!important}
+    .bad{color:var(--bad)!important}
+    .warn{color:var(--warn)!important}
+
+    .balance-state{
+      margin-top:2px;
+      padding:13px 14px;
+      border-radius:15px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.035);
+      color:#cbd5f5;
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .quick{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:12px;
+    }
+
+    .chip{
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.045);
+      color:#cdd7f7;
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:750;
+    }
+
+    .footer{
+      margin-top:20px;
+      color:#7f8aad;
+      font-size:12px;
+      line-height:1.55;
+      text-align:center;
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:24px;
+      transform:translate(-50%,20px);
+      opacity:0;
+      pointer-events:none;
+      padding:11px 14px;
+      border-radius:13px;
+      background:#151c31;
+      color:white;
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 16px 40px rgba(0,0,0,.35);
+      transition:.2s ease;
+      z-index:50;
+      font-size:13px;
+    }
+
+    .toast.show{
+      opacity:1;
+      transform:translate(-50%,0);
+    }
+
+    @media (max-width:800px){
+      .wrap{padding-top:24px}
+      .topbar{margin-bottom:22px}
+      .badge{display:none}
+      .grid{grid-template-columns:1fr}
+      .mode-grid{grid-template-columns:1fr}
+      .pad{padding:18px}
+      h1{letter-spacing:-1.5px}
+    }
+
+    @media (max-width:420px){
+      .wrap{width:min(100% - 18px,1080px)}
+      .stats{grid-template-columns:1fr}
+      .actions{flex-direction:column}
+      .secondary{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">⚡</div>
+        <div>CDT Token Calc</div>
+      </div>
+      <div class="badge">Car Dealership Tycoon</div>
+    </div>
+
+    <section class="hero">
+      <h1><span class="gradient">Trade Token</span><br>калькулятор</h1>
+      <p>
+        Введи баланс и сумму сделки. Калькулятор покажет, сколько получит другой игрок,
+        сколько уйдёт комиссии и сколько токенов останется у тебя.
+      </p>
+    </section>
+
+    <section class="grid">
+      <div class="card pad">
+        <div class="section-title">
+          <h2>Параметры сделки</h2>
+          <small>всё считается сразу</small>
+        </div>
+
+        <div class="field">
+          <label for="balance">Твой баланс</label>
+          <div class="input-wrap">
+            <input id="balance" inputmode="numeric" autocomplete="off" value="100000">
+            <span class="suffix">токенов</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label id="amountLabel" for="amount">Сколько отправляешь</label>
+          <div class="input-wrap">
+            <input id="amount" inputmode="numeric" autocomplete="off" value="10000">
+            <span class="suffix">токенов</span>
+          </div>
+          <div class="quick" aria-label="Быстрый выбор суммы">
+            <button class="chip" type="button" data-value="1000">1K</button>
+            <button class="chip" type="button" data-value="10000">10K</button>
+            <button class="chip" type="button" data-value="50000">50K</button>
+            <button class="chip" type="button" data-value="100000">100K</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="tax">Комиссия</label>
+          <div class="input-wrap">
+            <input id="tax" inputmode="decimal" autocomplete="off" value="8">
+            <span class="suffix">%</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Кто покрывает комиссию?</label>
+          <div class="mode-grid">
+            <div class="mode">
+              <input type="radio" name="mode" id="notCovered" value="notCovered" checked>
+              <label for="notCovered">
+                <strong>На нём</strong>
+                <span>TAX NOT COVERED. Ты вводишь, сколько отправляешь.</span>
+              </label>
+            </div>
+
+            <div class="mode">
+              <input type="radio" name="mode" id="covered" value="covered">
+              <label for="covered">
+                <strong>На мне</strong>
+                <span>TAX COVERED. Ты вводишь, сколько он должен получить.</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="hint">
+          Комиссия считается целыми токенами: <b>floor(отправка × процент)</b>.
+          Поэтому на очень маленьких суммах, например 10 токенов при 8%, комиссия может округлиться до 0.
+        </div>
+
+        <div class="actions">
+          <button class="primary" id="calcBtn" type="button">Рассчитать</button>
+          <button class="secondary" id="resetBtn" type="button">Сбросить</button>
+        </div>
+      </div>
+
+      <div class="card pad">
+        <div class="section-title">
+          <h2>Результат</h2>
+          <small id="modeBadge">TAX NOT COVERED</small>
+        </div>
+
+        <div class="results">
+          <div class="result-main">
+            <div class="eyebrow" id="heroLabel">Получатель получит</div>
+            <div class="big" id="heroValue">9 200</div>
+            <div class="sub" id="heroSub">из отправленных 10 000 токенов</div>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <span>Отправишь</span>
+              <strong id="sendValue">10 000</strong>
+            </div>
+            <div class="stat">
+              <span>Комиссия</span>
+              <strong class="warn" id="feeValue">800</strong>
+            </div>
+            <div class="stat">
+              <span>Получит игрок</span>
+              <strong class="good" id="receiveValue">9 200</strong>
+            </div>
+            <div class="stat">
+              <span>Останется у тебя</span>
+              <strong id="remainValue">90 000</strong>
+            </div>
+          </div>
+
+          <div class="balance-state" id="balanceState">
+            Баланса хватает для этой сделки.
+          </div>
+
+          <button class="secondary" id="copyBtn" type="button">Скопировать расчёт</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      Работает полностью в браузере, без сервера и базы данных — подходит для GitHub Pages.
+      Данные никуда не отправляются.
+    </div>
+  </main>
+
+  <div class="toast" id="toast">Скопировано</div>
+
+  <script>
+    const balanceEl = document.getElementById('balance');
+    const amountEl = document.getElementById('amount');
+    const taxEl = document.getElementById('tax');
+    const amountLabel = document.getElementById('amountLabel');
+
+    const heroLabel = document.getElementById('heroLabel');
+    const heroValue = document.getElementById('heroValue');
+    const heroSub = document.getElementById('heroSub');
+    const sendValue = document.getElementById('sendValue');
+    const feeValue = document.getElementById('feeValue');
+    const receiveValue = document.getElementById('receiveValue');
+    const remainValue = document.getElementById('remainValue');
+    const balanceState = document.getElementById('balanceState');
+    const modeBadge = document.getElementById('modeBadge');
+    const toast = document.getElementById('toast');
+
+    function cleanNumber(v){
+      const cleaned = String(v).replace(/[^\d]/g,'');
+      return cleaned ? Number(cleaned) : 0;
+    }
+
+    function parseTax(v){
+      const n = Number(String(v).replace(',','.').replace(/[^\d.]/g,''));
+      return Number.isFinite(n) ? Math.min(99.99, Math.max(0,n)) : 0;
+    }
+
+    function fmt(n){
+      return Math.max(0, Math.trunc(n)).toLocaleString('ru-RU');
+    }
+
+    function mode(){
+      return document.querySelector('input[name="mode"]:checked').value;
+    }
+
+    function receivedFromSend(send, taxRate){
+      const fee = Math.floor(send * taxRate);
+      return { fee, receive: send - fee };
+    }
+
+    // Минимальная отправка, чтобы получатель получил НЕ МЕНЬШЕ target.
+    // Учитывает округление комиссии вниз до целого токена.
+    function sendForTarget(target, taxRate){
+      if (target <= 0) return {send:0, fee:0, receive:0};
+      if (taxRate <= 0) return {send:target, fee:0, receive:target};
+
+      let send = Math.max(target, Math.floor(target / (1 - taxRate)) - 4);
+
+      while (true){
+        const r = receivedFromSend(send, taxRate);
+        if (r.receive >= target){
+          while (send > 0){
+            const prev = receivedFromSend(send - 1, taxRate);
+            if (prev.receive >= target) send--;
+            else break;
+          }
+          const final = receivedFromSend(send, taxRate);
+          return { send, fee: final.fee, receive: final.receive };
+        }
+        send++;
+      }
+    }
+
+    function calculate(){
+      const balance = cleanNumber(balanceEl.value);
+      const amount = cleanNumber(amountEl.value);
+      const taxPct = parseTax(taxEl.value);
+      const taxRate = taxPct / 100;
+      const m = mode();
+
+      let send, fee, receive;
+
+      if (m === 'notCovered'){
+        send = amount;
+        const r = receivedFromSend(send, taxRate);
+        fee = r.fee;
+        receive = r.receive;
+
+        modeBadge.textContent = 'TAX NOT COVERED';
+        amountLabel.textContent = 'Сколько отправляешь';
+        heroLabel.textContent = 'Получатель получит';
+        heroValue.textContent = fmt(receive);
+        heroSub.textContent = `из отправленных ${fmt(send)} токенов`;
+      } else {
+        const r = sendForTarget(amount, taxRate);
+        send = r.send;
+        fee = r.fee;
+        receive = r.receive;
+
+        modeBadge.textContent = 'TAX COVERED';
+        amountLabel.textContent = 'Сколько он должен получить';
+        heroLabel.textContent = 'Тебе нужно отправить';
+        heroValue.textContent = fmt(send);
+        heroSub.textContent = `чтобы игрок получил минимум ${fmt(amount)} токенов`;
+      }
+
+      const remain = balance - send;
+
+      sendValue.textContent = fmt(send);
+      feeValue.textContent = fmt(fee);
+      receiveValue.textContent = fmt(receive);
+      remainValue.textContent = remain >= 0 ? fmt(remain) : '0';
+
+      remainValue.classList.toggle('bad', remain < 0);
+      remainValue.classList.toggle('good', remain >= 0);
+
+      if (remain < 0){
+        balanceState.innerHTML = `❌ Не хватает <b class="bad">${fmt(Math.abs(remain))}</b> токенов для сделки.`;
+        balanceState.style.borderColor = 'rgba(251,113,133,.25)';
+      } else {
+        balanceState.innerHTML = `✅ Баланса хватает. После сделки останется <b class="good">${fmt(remain)}</b> токенов.`;
+        balanceState.style.borderColor = 'rgba(52,211,153,.22)';
+      }
+
+      localStorage.setItem('cdt_balance', balance);
+      localStorage.setItem('cdt_tax', taxPct);
+      localStorage.setItem('cdt_mode', m);
+
+      return { balance, amount, taxPct, send, fee, receive, remain, mode:m };
+    }
+
+    function showToast(text='Скопировано'){
+      toast.textContent = text;
+      toast.classList.add('show');
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(()=>toast.classList.remove('show'),1500);
+    }
+
+    async function copyResult(){
+      const r = calculate();
+      const covered = r.mode === 'covered';
+      const text = [
+        'CDT Trade Token Calculator',
+        covered ? 'TAX COVERED (комиссия на мне)' : 'TAX NOT COVERED (комиссия на нём)',
+        `Комиссия: ${r.taxPct}%`,
+        `Отправка: ${fmt(r.send)}`,
+        `Комиссия: ${fmt(r.fee)}`,
+        `Получит игрок: ${fmt(r.receive)}`,
+        `Останется у меня: ${r.remain >= 0 ? fmt(r.remain) : 'не хватает ' + fmt(-r.remain)}`
+      ].join('\n');
+
+      try{
+        await navigator.clipboard.writeText(text);
+        showToast();
+      }catch{
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        showToast();
+      }
+    }
+
+    function reset(){
+      balanceEl.value = '100000';
+      amountEl.value = '10000';
+      taxEl.value = '8';
+      document.getElementById('notCovered').checked = true;
+      calculate();
+    }
+
+    document.getElementById('calcBtn').addEventListener('click', calculate);
+    document.getElementById('copyBtn').addEventListener('click', copyResult);
+    document.getElementById('resetBtn').addEventListener('click', reset);
+
+    document.querySelectorAll('input').forEach(el=>{
+      el.addEventListener('input', calculate);
+      el.addEventListener('change', calculate);
+    });
+
+    document.querySelectorAll('.chip').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        amountEl.value = btn.dataset.value;
+        calculate();
+      });
+    });
+
+    document.querySelectorAll('input[name="mode"]').forEach(el=>{
+      el.addEventListener('change', calculate);
+    });
+
+    // Восстановление последних настроек
+    const savedBalance = localStorage.getItem('cdt_balance');
+    const savedTax = localStorage.getItem('cdt_tax');
+    const savedMode = localStorage.getItem('cdt_mode');
+
+    if (savedBalance !== null) balanceEl.value = savedBalance;
+    if (savedTax !== null) taxEl.value = savedTax;
+    if (savedMode === 'covered') document.getElementById('covered').checked = true;
+
+    calculate();
+  </script>
+</body>
+</html>
