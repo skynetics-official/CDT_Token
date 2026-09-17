@@ -364,6 +364,42 @@
       word-break:break-word;
     }
 
+    .copy-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+
+    .copy-value{
+      cursor:pointer;
+      user-select:all;
+      -webkit-user-select:all;
+      border-radius:8px;
+      padding:2px 4px;
+      margin-left:-4px;
+      transition:.15s ease;
+    }
+
+    .copy-value:hover{
+      background:rgba(255,255,255,.07);
+    }
+
+    .mini-copy{
+      flex:0 0 auto;
+      padding:6px 9px;
+      border-radius:9px;
+      font-size:11px;
+      font-weight:800;
+      color:#dce5ff;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.10);
+    }
+
+    .mini-copy:hover{
+      background:rgba(255,255,255,.12);
+    }
+
     .good{color:var(--good)!important}
     .bad{color:var(--bad)!important}
     .warn{color:var(--warn)!important}
@@ -541,26 +577,38 @@
         <div class="results">
           <div class="result-main">
             <div class="eyebrow" id="heroLabel">Получатель получит</div>
-            <div class="big" id="heroValue">9 200</div>
+            <div class="big copy-value" id="heroValue" title="Нажми, чтобы скопировать">9 200</div>
             <div class="sub" id="heroSub">из отправленных 10 000 токенов</div>
           </div>
 
           <div class="stats">
             <div class="stat">
               <span>Отправишь</span>
-              <strong id="sendValue">10 000</strong>
+              <div class="copy-row">
+                <strong class="copy-value" id="sendValue" title="Нажми, чтобы скопировать">10 000</strong>
+                <button class="mini-copy" type="button" data-copy="sendValue">Копировать</button>
+              </div>
             </div>
             <div class="stat">
               <span>Комиссия</span>
-              <strong class="warn" id="feeValue">800</strong>
+              <div class="copy-row">
+                <strong class="warn copy-value" id="feeValue" title="Нажми, чтобы скопировать">800</strong>
+                <button class="mini-copy" type="button" data-copy="feeValue">Копировать</button>
+              </div>
             </div>
             <div class="stat">
               <span>Получит игрок</span>
-              <strong class="good" id="receiveValue">9 200</strong>
+              <div class="copy-row">
+                <strong class="good copy-value" id="receiveValue" title="Нажми, чтобы скопировать">9 200</strong>
+                <button class="mini-copy" type="button" data-copy="receiveValue">Копировать</button>
+              </div>
             </div>
             <div class="stat">
               <span>Останется у тебя</span>
-              <strong id="remainValue">90 000</strong>
+              <div class="copy-row">
+                <strong class="copy-value" id="remainValue" title="Нажми, чтобы скопировать">90 000</strong>
+                <button class="mini-copy" type="button" data-copy="remainValue">Копировать</button>
+              </div>
             </div>
           </div>
 
@@ -575,7 +623,7 @@
 
     <div class="footer">
       Работает полностью в браузере, без сервера и базы данных — подходит для GitHub Pages.
-      Данные никуда не отправляются.
+      Данные никуда не отправляются. На любую цифру в результате можно нажать — она скопируется без пробелов.
     </div>
   </main>
 
@@ -709,6 +757,27 @@
       window.__toastTimer = setTimeout(()=>toast.classList.remove('show'),1500);
     }
 
+    async function copyNumberFromElement(id){
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      // Копируем только число без пробелов-разделителей.
+      const raw = (el.textContent || '').replace(/[^\d-]/g, '');
+
+      try{
+        await navigator.clipboard.writeText(raw);
+      }catch{
+        const ta = document.createElement('textarea');
+        ta.value = raw;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+
+      showToast(`Скопировано: ${raw}`);
+    }
+
     async function copyResult(){
       const r = calculate();
       const covered = r.mode === 'covered';
@@ -747,6 +816,14 @@
     document.getElementById('calcBtn').addEventListener('click', calculate);
     document.getElementById('copyBtn').addEventListener('click', copyResult);
     document.getElementById('resetBtn').addEventListener('click', reset);
+
+    document.querySelectorAll('[data-copy]').forEach(btn=>{
+      btn.addEventListener('click',()=>copyNumberFromElement(btn.dataset.copy));
+    });
+
+    document.querySelectorAll('.copy-value').forEach(el=>{
+      el.addEventListener('click',()=>copyNumberFromElement(el.id));
+    });
 
     document.querySelectorAll('input').forEach(el=>{
       el.addEventListener('input', calculate);
